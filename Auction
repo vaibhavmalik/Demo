@@ -7,17 +7,17 @@ struct bid_struct {
     int *coal_blocks;
 };
 void main(){
+    char filename[255];
+    scanf("%s",filename);
+    FILE *fp;
+    fp=fopen(filename,"r");
     int time_limit;
-    //scanf("%d",&time_limit);
     int no_coal_blocks;
-    //scanf("%d",&no_coal_blocks);
     int no_bids;
-    //scanf("%d",&no_bids);
     int no_companies;
-    //scanf("%d",&no_companies);
-    scanf("%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
+    fscanf(fp,"%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
     time_limit*=60;
-    printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
+    //printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
     int bids_companies[no_companies];
     int bids_start_companies[no_companies];
     int i=0,j=0,k=0;
@@ -30,19 +30,19 @@ void main(){
     bids_start_companies[0]=0;
     int bid_num;
     for(i=0;i<no_companies;i++){
-        scanf("%d %d",&temp,&bids_companies[i]);
+        fscanf(fp,"%d %d",&temp,&bids_companies[i]);
         if(i+1<no_companies){
             bids_start_companies[i+1]=bids_start_companies[i]+bids_companies[i];
         }
         for(j=0;j<bids_companies[i];j++){
             bid_num=bids_start_companies[i]+j;
-            scanf("%d %d %d",&bids[bid_num].company_name,&bids[bid_num].num_coal_blocks,&bids[bid_num].bid_value);
+            fscanf(fp,"%d %d %d",&bids[bid_num].company_name,&bids[bid_num].num_coal_blocks,&bids[bid_num].bid_value);
             for(k=0;k<bids[bid_num].num_coal_blocks;k++){
-                scanf("%d",&bids[bid_num].coal_blocks[k]);
+                fscanf(fp,"%d",&bids[bid_num].coal_blocks[k]);
             }
         }
     }
-    for (i=0;i<10;i++){
+    for (i=0;i<100;i++){
         printf("%d\n",bids[0].coal_blocks[i]);
     }
 
