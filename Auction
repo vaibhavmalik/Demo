@@ -1,4 +1,15 @@
 #include <stdio.h>
 int main(){
-
+    int time_limit;
+    //scanf("%d",&time_limit);
+    int no_coal_blocks;
+    //scanf("%d",&no_coal_blocks);
+    int no_bids;
+    //scanf("%d",&no_bids);
+    int no_companies;
+    //scanf("%d",&no_companies);
+    scanf("%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
+    time_limit*=60;
+    printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
+    return 0;
 }
