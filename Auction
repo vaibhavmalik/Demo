@@ -47,7 +47,7 @@ void main(){
         for(j=0;j<bids_companies[i];j++){
             bid_num=bids_start_companies[i]+j;
             fscanf(fp,"%d %d %d",&bids[bid_num].company_name,&bids[bid_num].num_coal_blocks,&bids[bid_num].bid_value);
-            bids[bid_num].company_name==bids[bid_num].company_name-1;
+            bids[bid_num].company_name=bids[bid_num].company_name-1;
             for(k=0;k<bids[bid_num].num_coal_blocks;k++){
                 fscanf(fp,"%d",&bids[bid_num].coal_blocks[k]);
             }
@@ -62,14 +62,14 @@ void main(){
     int *tempo;
     tempo=malloc(1000*200*sizeof(int));
     //printf("1s");
-    k=0;
+    k=0;// Index where the non conflicting bid has to be stored
     for (i=0;i<no_bids;i++){
         non_conflicting_bids[i]=tempo+k;
-        //printf ("start %d\n",bids_start_companies[bids[i].company_name]);
+        //printf ("start %d %d\n",bids_start_companies[bids[i].company_name],bids[i].company_name);
         //printf("2s");
-         // Index where the non conflicting bid has to be stored
         for (j=0;j<no_bids;j++){
-            if(j>=bids_start_companies[bids[i].company_name]||(bids[i].company_name>0&&j<bids_start_companies[bids[i].company_name-1])){
+            if(j<bids_start_companies[bids[i].company_name]||(bids[i].company_name+1<no_companies&&j>=bids_start_companies[bids[i].company_name+1])){
+                //printf ("3s\n");
                 test = compare(bids[i].coal_blocks,bids[j].coal_blocks,bids[i].num_coal_blocks,bids[j].num_coal_blocks);
                 if (test !=0){
                     tempo[k] = j;
@@ -82,6 +82,7 @@ void main(){
         tempo[k] = -1;
         k++;
     }
+    k-=no_bids;
     printf("\n%d\n",k);
     for(i=0;i<no_bids;i++){
         free(bids[i].coal_blocks);
