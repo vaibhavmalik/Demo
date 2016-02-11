@@ -1,10 +1,10 @@
 #include <stdio.h>
-
+#include<stdlib.h>
 struct bid_struct {
     int company_name;
     int num_coal_blocks;
     int bid_value;
-    int coal_blocks[];
+    int *coal_blocks;
 };
 void main(){
     int time_limit;
@@ -23,6 +23,10 @@ void main(){
     int i=0,j=0,k=0;
     int temp,temp1,tep2,temp3;
     struct bid_struct bids[no_bids];
+    for(i=0;i<no_bids;i++){
+        bids[i].coal_blocks=malloc(no_coal_blocks*sizeof(int));
+
+    }
     bids_start_companies[0]=0;
     int bid_num;
     for(i=0;i<no_companies;i++){
@@ -31,7 +35,7 @@ void main(){
             bids_start_companies[i+1]=bids_start_companies[i]+bids_companies[i];
         }
         for(j=0;j<bids_companies[i];j++){
-            bid_num=bids_companies[i]+j;
+            bid_num=bids_start_companies[i]+j;
             scanf("%d %d %d",&bids[bid_num].company_name,&bids[bid_num].num_coal_blocks,&bids[bid_num].bid_value);
             for(k=0;k<bids[bid_num].num_coal_blocks;k++){
                 scanf("%d",&bids[bid_num].coal_blocks[k]);
