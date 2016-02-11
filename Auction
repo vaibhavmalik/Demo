@@ -7,28 +7,27 @@ struct bid_struct {
     int *coal_blocks;
 };
 void main(){
+    //for file input
     char filename[255];
     scanf("%s",filename);
     FILE *fp;
     fp=fopen(filename,"r");
-    int time_limit;
-    int no_coal_blocks;
-    int no_bids;
-    int no_companies;
+    // file now stored in fp
+    int time_limit,no_coal_blocks,no_bids,no_companies;
     fscanf(fp,"%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
+    //taking T,N,B,C
     time_limit*=60;
-    //printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
-    int bids_companies[no_companies];
-    int bids_start_companies[no_companies];
-    int i=0,j=0,k=0;
-    int temp,temp1,tep2,temp3;
+    //converting time to seconds
+    ////printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
+    int bids_companies[no_companies],bids_start_companies[no_companies];
+    int i=0,j=0,k=0,temp,bid_num;
     struct bid_struct bids[no_bids];
+    //allocating memory to pointers in struct
     for(i=0;i<no_bids;i++){
         bids[i].coal_blocks=malloc(no_coal_blocks*sizeof(int));
-
     }
     bids_start_companies[0]=0;
-    int bid_num;
+
     for(i=0;i<no_companies;i++){
         fscanf(fp,"%d %d",&temp,&bids_companies[i]);
         if(i+1<no_companies){
@@ -45,5 +44,4 @@ void main(){
     for (i=0;i<100;i++){
         printf("%d\n",bids[0].coal_blocks[i]);
     }
-
 }
