@@ -6,10 +6,23 @@ struct bid_struct {
     int bid_value;
     int *coal_blocks;
 };
+
+int compare(int a[],int b[],int m,int n){
+    int i,j;
+    for (i=0;i<m;i++){
+        for(j=0;j<n;j++){
+            if (a[i]==b[j]){
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
 void main(){
-    
+
     int test;
-    
+
     int time_limit;
     //scanf("%d",&time_limit);
     int no_coal_blocks;
@@ -21,17 +34,17 @@ void main(){
     scanf("%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
     time_limit*=60;
     printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
-    
+
     int bids_companies[no_companies];
     int bids_start_companies[no_companies];
     int i=0,j=0,k=0;
     int temp,temp1,tep2,temp3;
-    
+
     struct bid_struct bids[no_bids];
-    
+
     bids_start_companies[0]=0;
     int bid_num;
-    
+
     for(i=0;i<no_companies;i++){
         scanf("%d %d",&temp,&bids_companies[i]);
         if(i+1<no_companies){
@@ -48,16 +61,16 @@ void main(){
     for (i=0;i<10;i++){
         printf("%d\n",bids[0].coal_blocks[i]);
     }
-    
+
     // Creating a list of non overlapping bids
     int bid_value_per_block[no_bids], non_conflicting_bids[no_bids][no_bids];
-    
-    
+
+
     for (i=0;i<no_bids;i++){
         k = 0; // Index where the non conflicting bid has to be stored
-        for (j=i+1;j<no_bids;j++){
-            test = compare(bids[i].coal_blocks,bids[j].coal_blocks)
-            if (test == true){
+        for (j=0;j<no_bids;j++){
+            test = compare(bids[i].coal_blocks,bids[j].coal_blocks,bids[i].num_coal_blocks,bids[j].num_coal_blocks);
+            if (test == 1){
                 non_conflicting_bids[i][k] = j;
                 k++;
             }
@@ -65,3 +78,4 @@ void main(){
         non_conflicting_bids[i][k] = -1;
     }
 }
+
