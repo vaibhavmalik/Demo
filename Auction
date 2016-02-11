@@ -1,4 +1,11 @@
 #include <stdio.h>
+
+struct bid_struct {
+    int company_name;
+    int num_coal_blocks;
+    int bid_value;
+    int coal_blocks[];
+};
 void main(){
     int time_limit;
     //scanf("%d",&time_limit);
