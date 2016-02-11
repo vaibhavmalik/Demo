@@ -11,5 +11,13 @@ void main(){
     scanf("%d %d %d %d",&time_limit,&no_coal_blocks,&no_bids,&no_companies);
     time_limit*=60;
     printf("%d %d %d %d\n",time_limit,no_coal_blocks,no_bids,no_companies);
+    int bids_companies[no_companies];
+    int bids_start_companies[no_companies];
+    int i=0;
+    int temp;
+    for(i=0;i<no_companies;i++){
+        scanf("%d %d",&temp,&bids_companies[i]);
+        
+    }
     
 }
