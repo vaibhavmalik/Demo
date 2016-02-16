@@ -6,15 +6,15 @@ struct bid_struct {
     int bid_value;
     int *coal_blocks;
 };
-int compare(int a[],int b[],int m,int n){
+char compare(int a[],int b[],int m,int n){
     int i,j;
     for (i=0,j=0;i<m&&j<n;){
 
-            if (a[i]==b[j])return 0;
+            if (a[i]==b[j])return 'y';
             else if(a[i]>=b[j])j++;
             else i++;
     }
-    return 1;
+    return 'n';
 }
 void main(){
     //for file input
@@ -53,40 +53,70 @@ void main(){
             }
         }
     }
+    bid_num++;
     //for (i=0;i<100;i++){
       //  printf("%d\n",bids[0].coal_blocks[i]);
     //}
     //printf("yo");
     // Creating a list of non overlapping bids
-    int bid_value_per_block[no_bids], *non_conflicting_bids[no_bids];
-    int *tempo;
-    tempo=malloc(1000*200*sizeof(int));
-    //printf("1s");
-    k=0;// Index where the non conflicting bid has to be stored
-    for (i=0;i<no_bids;i++){
-        non_conflicting_bids[i]=tempo+k;
-        //printf ("start %d %d\n",bids_start_companies[bids[i].company_name],bids[i].company_name);
-        //printf("2s");
-        for (j=0;j<no_bids;j++){
-            if(j<bids_start_companies[bids[i].company_name]||(bids[i].company_name+1<no_companies&&j>=bids_start_companies[bids[i].company_name+1])){
-                //printf ("3s\n");
-                test = compare(bids[i].coal_blocks,bids[j].coal_blocks,bids[i].num_coal_blocks,bids[j].num_coal_blocks);
-                if (test !=0){
-                    tempo[k] = j;
-                    k++;
-
-                    printf("%d %d\n",i,j);
-                }
-            }
+    int bid_value_per_block[no_bids];
+//    int *non_conflicting_bids[no_bids];
+//    int *tempo;
+//    tempo=malloc(1000*200*sizeof(int));
+//    //printf("1s");
+//    k=0;// Index where the non conflicting bid has to be stored
+//    for (i=0;i<no_bids;i++){
+//        non_conflicting_bids[i]=tempo+k;
+//        //printf ("start %d %d\n",bids_start_companies[bids[i].company_name],bids[i].company_name);
+//        //printf("2s");
+//        for (j=0;j<no_bids;j++){
+//            if(j<bids_start_companies[bids[i].company_name]||(bids[i].company_name+1<no_companies&&j>=bids_start_companies[bids[i].company_name+1])){
+//                //printf ("3s\n");
+//                test = compare(bids[i].coal_blocks,bids[j].coal_blocks,bids[i].num_coal_blocks,bids[j].num_coal_blocks);
+//                if (test !=0){
+//                    tempo[k] = j;
+//                    k++;
+//
+//                    printf("%d %d\n",i,j);
+//                }
+//            }
+//        }
+//        tempo[k] = -1;
+//        k++;
+//    }
+//    k-=no_bids;
+//    printf("\n%d\n",k);
+    int temp5,temp6;
+    char *conflict_checker=malloc(bid_num*bid_num*sizeof(char));
+    //printf("%d\n",bid_num);
+    for(i=0;i<bid_num;i++){
+        conflict_checker[i*bid_num+i]='y';
+        temp6=bids_start_companies[bids[i].company_name]+bids_companies[bids[i].company_name];
+        //printf("%d %d\n",i,temp6);
+        for(j=i+1;j<temp6;j++){
+            conflict_checker[i*bid_num+j]='y';
+            conflict_checker[j*bid_num+i]='y';
         }
-        tempo[k] = -1;
-        k++;
+        for(j=temp6;j<bid_num;j++){
+            temp5=compare(bids[i].coal_blocks,bids[j].coal_blocks,bids[i].num_coal_blocks,bids[j].num_coal_blocks);
+            conflict_checker[i*bid_num+j]=temp5;
+            conflict_checker[j*bid_num+i]=temp5;
+        }
     }
-    k-=no_bids;
-    printf("\n%d\n",k);
+    for(i=0;i<bid_num;i++){
+        for(j=0;j<bid_num;j++){
+            printf("%c ",conflict_checker[i*bid_num+j]);
+        }
+        printf("\n");
+    }
+
+
+
+    //free everything
     for(i=0;i<no_bids;i++){
         free(bids[i].coal_blocks);
     }
-    free(tempo);
+    free(conflict_checker);
+//    free(tempo);
     fclose(fp);
 }
