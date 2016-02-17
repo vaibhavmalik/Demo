@@ -20,22 +20,26 @@ def musketeerMove(state):
     This function will return the move for the musketeer 
     Input: state, which is configuration of the board in form of 2-d array
     '''
-    print ('hello') 
+    print state
+    print ('musketeerMove1') 
     musketeer_positions = []
     for i in range(5):
         for j in range(5):
             if state[i][j]==1:
                 musketeer_positions.append([i,j])
-    print (musketeer_positions) 
+    print ('musketeerMove2') 
     alpha_beta_pruning(state,musketeer_positions)
-    print ('hello',STATE)
+    print ('musketeerMove3			finally')
+    print (STATE) 
     return STATE
 
 
 def alpha_beta_pruning(state,musketeer_positions):
 
-
+    print ('abp1')
     max_value(state,-MAX_POSSIBLE,MAX_POSSIBLE,musketeer_positions) # v is array with 3 element one is the current state, one is the state it should move to get the max utility and last is the utility 
+    #print ('abp2') 
+    
 
 
 
@@ -46,17 +50,18 @@ def cutoff_state(state,musketeer_positions):
     global DEPTH
     print ('cutoff1')
     temp = terminal_state(state,musketeer_positions)
-    print ('cutoff2')
+    #print ('cutoff2')
     if DEPTH > 2:
-        print ('cutoff3')
+        #print ('cutoff3')
         return [1,evaluation(state,musketeer_positions)]
     elif temp == 1:
-        print ('cutoff4')
+        #print ('cutoff4')
         return [1,win_utility(state)]
     elif temp == 2:
-        print ('cutoff5')
+        #print ('cutoff5')
         return [1,lose_utility(state)]
-
+   # print ('cutoff5')
+        
     return [0,0]
 
 
@@ -65,12 +70,16 @@ def evaluation(state,musketeer_positions):
     '''Check whether it is a terminal state or not and give value accordingly'''
     
     value = 0
-
+    #print ('eval1')
+        
     for i in range(5):
         for j in range(5):
             if state[i][j] == 2:
                 value += 10
+    #print ('eval2')
+    
     value = 220 - value
+    print ('eval	',value)
     row12 = abs(musketeer_positions[0][0]-musketeer_positions[1][0])
     row23 = abs(musketeer_positions[1][0]-musketeer_positions[2][0])
     row13 = abs(musketeer_positions[0][0]-musketeer_positions[2][0])
@@ -78,17 +87,20 @@ def evaluation(state,musketeer_positions):
     col23 = abs(musketeer_positions[1][1]-musketeer_positions[2][1])
     col13 = abs(musketeer_positions[0][1]-musketeer_positions[2][1])
     value += min(max(row12,row23,row13),max(col12,col23,col13))*10
+    print ('eval3	', value)
     return value 
 
 
 
 def lose_utility(state):
     value = 0
-
+    print ('lu1')
+    
     for i in range(5):
         for j in range(5):
             if state[i][j] == 0:
                 value += 10
+    #print ('lu2')
     return value
 
 
@@ -96,41 +108,42 @@ def win_utility(state):
     '''return the utility value for the terminal state'''
     
     value = 250
-
+    print ('wu1')
     for i in range(5):
         for j in range(5):
             if state[i][j] == 2:
                 value += 10
+    #print ('wu2')
     return value
 
 
 
 def terminal_state(state,musketeer_positions):
     '''Check whether state is terminal or not'''
-    print ('terminal1')
+    #print ('terminal1')
     if musketeer_positions[0][0] == musketeer_positions[1][0] and musketeer_positions[1][0] == musketeer_positions[2][0]:
         return 2
-    print ('termina2')
+    #print ('termina2')
     if musketeer_positions[0][1] == musketeer_positions[1][1] and musketeer_positions[1][1] == musketeer_positions[2][1]:
         return 2
-    print ('terminal3')
+    #print ('terminal3')
     for k in range(3):
-        print ('terminalloop')
+        #print ('terminalloop')
         [i,j] = musketeer_positions[k]
-        print ('terminalloop1')
+        #print ('terminalloop1')
         if i-1>=0 and state[i-1][j]==2:
-            print ('terminalloop2')
+            #print ('terminalloop2')
             return 0
         elif i+1<5 and state[i+1][j]==2:
-            print ('terminalloop3')
+            #print ('terminalloop3')
             return 0
         elif j-1>=0 and state[i][j-1]==2:
-            print ('terminalloop4')
+            #print ('terminalloop4')
             return 0
         elif j+1<5 and state[i][j+1]==2:
-            print ('terminalloop5')
+            #print ('terminalloop5')
             return 0
-        print ('terminalloop6')
+        #print ('terminalloop6')
     return 1
 
 
@@ -153,11 +166,14 @@ def max_value(state,alpha,beta,musketeer_positions):
 
     value = -MAX_POSSIBLE
     for musk in range(3):
-        print ('maxloop')
+        print ('maxloop	',musk)
         [i,j] = musketeer_positions[musk]
         if i-1>=0 and state[i-1][j]==2:
             print ('maxloop1')
-            action = list(state)
+            action=[[0 for x in range(5)] for x in range(5)] 
+            for m in range(5):
+            	for n in range(5):
+            		action[m][n]=state[m][n]
             action[i][j] = 0
             action[i-1][j] = 1
             new_musketeers_position = list(musketeer_positions)
@@ -173,8 +189,14 @@ def max_value(state,alpha,beta,musketeer_positions):
             
 
         if i+1<5 and state[i+1][j]==2:
+            
+            
             print ('maxloop2')
-            action = list(state)
+            action=[[0 for x in range(5)] for x in range(5)] 
+            for m in range(5):
+            	for n in range(5):
+            		action[m][n]=state[m][n]
+            print('yo')
             action[i][j] = 0
             action[i+1][j] = 1
             new_musketeers_position = list(musketeer_positions)
@@ -191,7 +213,10 @@ def max_value(state,alpha,beta,musketeer_positions):
         
         if j-1>=0 and state[i][j-1]==2:
             print ('maxloop3')
-            action = list(state)
+            action=[[0 for x in range(5)] for x in range(5)] 
+            for m in range(5):
+            	for n in range(5):
+            		action[m][n]=state[m][n]
             action[i][j] = 0
             action[i][j-1] = 1
             new_musketeers_position = list(musketeer_positions)
@@ -208,7 +233,10 @@ def max_value(state,alpha,beta,musketeer_positions):
         
         if j+1<5 and state[i][j+1]==2:
             print ('maxloop4')
-            action = list(state)
+            action=[[0 for x in range(5)] for x in range(5)] 
+            for m in range(5):
+            	for n in range(5):
+            		action[m][n]=state[m][n]
             action[i][j] = 0
             action[i][j+1] = 1
             new_musketeers_position = list(musketeer_positions)
@@ -223,6 +251,7 @@ def max_value(state,alpha,beta,musketeer_positions):
                 return value
             alpha = max(alpha,value)
     DEPTH -= 1
+    print ('max3')
     return value
 
 
@@ -233,7 +262,7 @@ def min_value(state,alpha,beta,musketeer_positions):
     global DEPTH
     DEPTH += 1
     check = cutoff_state(state,musketeer_positions)
-    
+    print ('min2')
     if check[0] == 1:
         DEPTH += 1
         return check[1]
@@ -243,9 +272,14 @@ def min_value(state,alpha,beta,musketeer_positions):
     value = MAX_POSSIBLE
     for i in range(5):
         for j in range(5):
+            print ('minloop')
             if state[i][j] == 2:
                 if i-1>=0 and state[i-1][j]==0:
-                    action = list(state)
+                    print ('minloop1')
+                    action=[[0 for x in range(5)] for x in range(5)] 
+                    for m in range(5):
+                    	for n in range(5):
+                           	action[m][n]=state[m][n]
                     action[i][j] = 0
                     action[i-1][j] = 2
                     value = min(value,max_value(action,alpha,beta,musketeer_positions) )
@@ -254,8 +288,12 @@ def min_value(state,alpha,beta,musketeer_positions):
                         return value
                     beta = min(beta,value)
                 
-                if i+1<5 and state[i+1][j]==0:
-                    action = list(state)
+               	if i+1<5 and state[i+1][j]==0:
+                    print ('minloop2')
+                    action=[[0 for x in range(5)] for x in range(5)] 
+                    for m in range(5):
+                    	for n in range(5):
+                           	action[m][n]=state[m][n]
                     action[i][j] = 0
                     action[i+1][j] = 2
                     value = min(value,max_value(action,alpha,beta,musketeer_positions) )
@@ -265,7 +303,11 @@ def min_value(state,alpha,beta,musketeer_positions):
                     beta = min(beta,value)
 
                 if j-1>=0 and state[i][j-1]==0:
-                    action = list(state)
+                    print ('minloop3')
+                    action=[[0 for x in range(5)] for x in range(5)] 
+                    for m in range(5):
+                    	for n in range(5):
+                           	action[m][n]=state[m][n]
                     action[i][j] = 0
                     action[i][j-1] = 2
                     value = min(value,max_value(action,alpha,beta,musketeer_positions) )
@@ -275,7 +317,11 @@ def min_value(state,alpha,beta,musketeer_positions):
                     beta = min(beta,value)
 
                 if j+1<5 and state[i][j+1]==2:
-                    action = list(state)
+                    print ('minloop4')
+                    action=[[0 for x in range(5)] for x in range(5)] 
+                    for m in range(5):
+                    	for n in range(5):
+                           	action[m][n]=state[m][n]
                     action[i][j] = 0
                     action[i][j+1] = 2
                     value = min(value,max_value(action,alpha,beta,musketeer_positions) )
@@ -284,6 +330,7 @@ def min_value(state,alpha,beta,musketeer_positions):
                         return value
                     beta = min(beta,value)
     DEPTH -= 1
+    print ('min3')
     return value
 
 
