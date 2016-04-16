@@ -16,20 +16,19 @@ f.append("serverfault")
 f.append("askubuntu")
 f.append("tex")
 f.append("unix")
-#f.append("stackoverflow")
+f.append("stackoverflow")
 current_dir = ""
 
 
 def main():
 	global f
 	global current_dir
-	for i in range(len(f)):
-		current_dir = f[i]
-		users_reputation()
+	#for i in range(len(f)):
+	current_dir = f[11]
 	#tree = ET.parse("meta_stackexchange/Posts.xml")
-	# tree = ET.parse(current_dir+"/Posts.xml")
-	# root = tree.getroot()
-	# network1_compli(root)
+	tree = ET.parse(current_dir+"/Posts.xml")
+	root = tree.getroot()
+	network1_compli(root)
 	#network2(root)
 
 def best_answer_hpc(qa_score):
@@ -188,9 +187,13 @@ def best_answer(qa_score):
 	not_accepted = [[ 0 for i in range(500)]for j in range(500) ]
 	scores = [[ [] for i in range(500)]for j in range(500) ]# In this function by 0th postion I mean 1st position. The size is big to avoid error in case best answer comes later.
 	timestamps = [[[[] for k in range(i)] for j in range(500)] for i in range(500)]
-	
+	print("first")
+	i = 0
 	for q in questions:
 		# To handle the case when the there is no answer
+		i += 1
+		if i%10000 == 0:
+			print("iteration",i)
 		length = len(qa_score[q][0])
 		if length > 0 and length < 500:
 
@@ -213,6 +216,7 @@ def best_answer(qa_score):
 					#print(qa_score[q][2])
 					timestamps[length][index][i].append(qa_score[q][2][i+1] - qa_score[q][2][i]) 
 			
+	print("second")
 	''' Removing empty list and values'''
 	for i in range(len(best_answer_position)):
 		k = len(best_answer_position[i])-1
@@ -654,30 +658,10 @@ def users_reputation():
 	root = tree.getroot()
 	
 	users_rep = {}
-	dis_rep = {}
+	
 	for child in root:
-		rep = int(child.attrib['Reputation'])
-		users_rep[int(child.attrib['Id'])] = rep
-		if dis_rep.has_key(rep):
-			dis_rep[rep] += 1
-		else:
-			dis_rep[rep] = 1
 
-
-	# plt.plot(dis_rep.keys(),dis_rep.values())
-	# plt.show()
-
-	''' Write number of reputation distribution in a file'''
-	
-	f=open('reputation_distribution('+current_dir+').txt','w')
-	
-	reps = sorted(dis_rep.keys())
-
-	for rep in reps:
-		
-		f.write(str(rep)+"\t"+str(dis_rep[rep])+"\n")
-		
-	f.close()
+		users_rep[int(child.attrib['Id'])] = int(child.attrib['Reputation'])
 
 	return users_rep
 
