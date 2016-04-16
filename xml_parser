@@ -1,0 +1,862 @@
+import xml.etree.ElementTree as ET
+import networkx as nx
+#import matplotlib.pyplot as plt 	# comment it when using HPC
+import numpy
+import time
+import datetime
+f = []
+f.append("ex")
+f.append("cooking")
+f.append("meta_stackexchange")
+f.append("meta_stack")
+f.append("math")
+f.append("super_user")
+f.append("askubuntu")
+f.append("serverfault")
+f.append("askubuntu")
+f.append("tex")
+f.append("unix")
+#f.append("stackoverflow")
+current_dir = ""
+
+
+def main():
+	global f
+	global current_dir
+	for i in range(len(f)):
+		current_dir = f[i]
+		users_reputation()
+	#tree = ET.parse("meta_stackexchange/Posts.xml")
+	# tree = ET.parse(current_dir+"/Posts.xml")
+	# root = tree.getroot()
+	# network1_compli(root)
+	#network2(root)
+
+def best_answer_hpc(qa_score):
+	pass
+
+def best_answer_timestamp_hpc(qa_score):
+	'''
+	Input(qa_score): Dicationary with keys as questions and values are [[score],[userId],[reputation]]
+	Output: Plot of num_questions vs best_answers position
+	'''
+	global current_dir
+	questions = qa_score.keys()
+	total_num_questions = len(questions)
+
+	'''ith postion contains list of best answers position in question having i answers'''
+	print("place")
+	best_answer_position = [[ 0 for i in range(100)]for j in range(100) ]# In this function by 0th postion I mean 1st position. The size is big to avoid error in case best answer comes later.
+	print("p")
+	accepted_time = [[ 0 for i in range(100)]for j in range(100) ]
+	print("l")
+	not_accepted = [[ 0 for i in range(100)]for j in range(100) ]
+	print("a")
+	scores = [[ [] for i in range(100)]for j in range(100) ]# In this function by 0th postion I mean 1st position. The size is big to avoid error in case best answer comes later.
+	print("c")
+	timestamps = [[[[] for k in range(i)] for j in range(100)] for i in range(100)]
+	print("place-1")
+	
+	for q in questions:
+		# To handle the case when the there is no answer
+		length = len(qa_score[q][0])
+		if length > 0 and length < 100:
+
+			index = qa_score[q][0].index(max(qa_score[q][0]))
+
+			best_answer_position[length][index] += 1
+			
+			if qa_score[q][3][0] == -1:
+				not_accepted[length][index] += 1
+			else:
+				accepted_time[length][index] += qa_score[q][3][1]
+			
+			for j in range(length):
+				scores[length][j].append(qa_score[q][0][j])	# ith index is for answers in i+1 position
+			temp = []
+			
+			if length > 1:
+				#print(length)
+				for i in range(length):
+					#print(qa_score[q][2])
+					timestamps[length][index][i].append(qa_score[q][2][i+1] - qa_score[q][2][i]) 
+	
+	print("place0")
+	''' Removing empty list and values'''
+	for i in range(len(best_answer_position)):
+		k = len(best_answer_position[i])-1
+		while(k>=0 and best_answer_position[i][k]==0):
+			best_answer_position[i].pop()
+			accepted_time[i].pop()
+			timestamps[i].pop()
+			k-=1
+
+	k = len(best_answer_position)-1
+	while(k>=0 and len(best_answer_position[k])==0):
+		best_answer_position.pop()
+		accepted_time.pop()
+		timestamps.pop()
+		k-=1
+	
+	''' Curve of num_questions vs best_answers position'''
+	f=open('num_questions_vs_best_answers_position('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of best answer , then the number of question having kth answer as best answer, percentage, time taken to accept an answer")
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])==0:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t"+str(best_answer_position[i][j])+"\t\t"+str(best_answer_position[i][j]*100.0/sum(best_answer_position[i]))+"\n")
+		
+	f.close()
+
+
+
+	''' timestamps'''
+
+
+	print("place1")
+	f=open('timestamps(format)_mean('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	#f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	#f.write("Format: In each segment, first number(k) is the postion of best answer and second is the number of question having kth answer as best answer. Then the average of differences in timestamp\n")
+	
+	f.write(str(len(best_answer_position))+"\n")
+	for i in range(5,len(best_answer_position)):
+		
+		if len(best_answer_position[i])<=0:
+			continue
+		f.write(str(i) + "\n")
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t")
+			for k in range(i):
+				#print(i,k)
+				if best_answer_position[i][j]!= 0:
+					print(best_answer_position[i][j],i,j)
+					#f.write(str(datetime.timedelta(seconds=numpy.mean(timestamps[i][j][k]) ) )+"\t|\t")
+					f.write(str(numpy.mean(timestamps[i][j][k]))+"\t")
+
+			f.write("\n")
+		
+	f.close()
+	print("place2")
+	f=open('timestamps(format)_median('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	#f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	#f.write("Format: In each segment, first number(k) is the postion of best answer and second is the number of question having kth answer as best answer. Then the average of differences in timestamp\n")
+	
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])<=0:
+			continue
+		f.write(str(i)+"\n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t")
+			for k in range(i):
+				#print(i,k)
+				if best_answer_position[i][j]!= 0:
+					#f.write(str(datetime.timedelta(seconds=numpy.median(timestamps[i][j][k]) ) )+"\t|\t")
+					f.write(str(numpy.median(timestamps[i][j][k]))+"\t")
+			f.write("\n")
+		
+	f.close()
+
+	        
+
+def best_answer(qa_score):
+	'''
+	Input(qa_score): Dicationary with keys as questions and values are [[score],[userId],[reputation]]
+	Output: Plot of num_questions vs best_answers position
+	'''
+	global current_dir
+	questions = qa_score.keys()
+	total_num_questions = len(questions)
+
+	'''ith postion contains list of best answers position in question having i answers'''
+	
+	best_answer_position = [[ 0 for i in range(500)]for j in range(500) ]# In this function by 0th postion I mean 1st position. The size is big to avoid error in case best answer comes later.
+	accepted_time = [[ 0 for i in range(500)]for j in range(500) ]
+	not_accepted = [[ 0 for i in range(500)]for j in range(500) ]
+	scores = [[ [] for i in range(500)]for j in range(500) ]# In this function by 0th postion I mean 1st position. The size is big to avoid error in case best answer comes later.
+	timestamps = [[[[] for k in range(i)] for j in range(500)] for i in range(500)]
+	
+	for q in questions:
+		# To handle the case when the there is no answer
+		length = len(qa_score[q][0])
+		if length > 0 and length < 500:
+
+			index = qa_score[q][0].index(max(qa_score[q][0]))
+
+			best_answer_position[length][index] += 1
+			
+			if qa_score[q][3][0] == -1:
+				not_accepted[length][index] += 1
+			else:
+				accepted_time[length][index] += qa_score[q][3][1]
+			
+			for j in range(length):
+				scores[length][j].append(qa_score[q][0][j])	# ith index is for answers in i+1 position
+			temp = []
+			
+			if length > 1:
+				#print(length)
+				for i in range(length):
+					#print(qa_score[q][2])
+					timestamps[length][index][i].append(qa_score[q][2][i+1] - qa_score[q][2][i]) 
+			
+	''' Removing empty list and values'''
+	for i in range(len(best_answer_position)):
+		k = len(best_answer_position[i])-1
+		while(k>=0 and best_answer_position[i][k]==0):
+			best_answer_position[i].pop()
+			accepted_time[i].pop()
+			timestamps[i].pop()
+			k-=1
+
+	k = len(best_answer_position)-1
+	while(k>=0 and len(best_answer_position[k])==0):
+		best_answer_position.pop()
+		accepted_time.pop()
+		timestamps.pop()
+		k-=1
+
+
+	for i in range(len(scores)):
+		k = len(scores[i])-1
+		while(k>=0 and len(scores[i][k])==0):
+			scores[i].pop()
+			k-=1
+
+	k = len(scores)-1
+	while(k>=0 and len(scores[k])==0):
+		scores.pop()
+		k-=1
+
+
+	#x = [i for i in range(1, len(best_answer_position)+1 )]
+	
+	''' Ploting the curve (NOTE: Comment it for HPC)'''
+	# plt.plot(x,best_answer_position,'bo')
+	# plt.xlabel('best_answer_position')
+	# plt.ylabel('num_questions')
+	# plt.show()
+
+	'''For getting this curve in a file(for HPC)'''
+
+	''' Curve of num_questions vs best_answers position'''
+	f=open('num_questions_vs_best_answers_position('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of best answer , then the number of question having kth answer as best answer, percentage, time taken to accept an answer")
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])==0:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t"+str(best_answer_position[i][j])+"\t\t"+str(best_answer_position[i][j]*100.0/sum(best_answer_position[i]))+"\n")
+		
+	f.close()
+
+	''' Average Time take to accept'''
+	f=open('average_time_accept('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of best answer , then the number of question having kth answer as best answer, percentage, time taken to accept an answer")
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])==0:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t"+str(best_answer_position[i][j])+"\t\t"+str(best_answer_position[i][j]*100.0/sum(best_answer_position[i]))+"\t\t")
+			
+			if best_answer_position[i][j]>0:
+				f.write(str(datetime.timedelta(seconds=(accepted_time[i][j]*1.0/best_answer_position[i][j]) ) )+"\t\t")
+				f.write("Not Accepted  "+str(not_accepted[i][j]) + "\n")
+			
+	f.close()
+
+	''' timestamps'''
+
+
+
+	f=open('timestamps(format)_mean('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of best answer and second is the number of question having kth answer as best answer. Then the average of differences in timestamp\n")
+	
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])<=1:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t"+str(best_answer_position[i][j])+"\t\t"+str(best_answer_position[i][j]*100.0/sum(best_answer_position[i]))+"\t\t")
+			for k in range(i):
+				#print(i,k)
+				if best_answer_position[i][j]!= 0:
+					f.write(str(datetime.timedelta(seconds=numpy.mean(timestamps[i][j][k]) ) )+"\t|\t")
+					#f.write(str((timestamps[i][j][k]))+"\t|\t")
+			f.write("\n")
+		
+	f.close()
+
+	f=open('timestamps(format)_median('+current_dir+').txt','w')
+	#f.write("one answers "+str(one_answer) + "\n")
+	#f.write("Unanswered "+str(unanswered) + "\n")
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of best answer and second is the number of question having kth answer as best answer. Then the average of differences in timestamp\n")
+	
+	for i in range(1,len(best_answer_position)):
+		if len(best_answer_position[i])<=1:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(best_answer_position[i])):
+			
+			f.write(str(j+1)+"\t"+str(best_answer_position[i][j])+"\t\t"+str(best_answer_position[i][j]*100.0/sum(best_answer_position[i]))+"\t\t")
+			for k in range(i):
+				#print(i,k)
+				if best_answer_position[i][j]!= 0:
+					f.write(str(datetime.timedelta(seconds=numpy.median(timestamps[i][j][k]) ) )+"\t|\t")
+			f.write("\n")
+		
+	f.close()
+
+	f = open('scores_vs_positon('+current_dir+').txt','w')
+
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of answer followed by scores in different question of answer at that postion")
+	
+	for i in range(1,len(scores)):
+		if len(scores[i])==0:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		
+		for j in range(len(scores[i])):
+			f.write("***"+str(j+1)+"***\t\t")
+			temp = (scores[i][j])
+			for k in range(len(temp)):
+				f.write(str(temp[k])+"\t")
+			f.write("\n\n")
+		
+	f.close()
+
+	f = open('distribution_of_scores_across_answer_position('+current_dir+').txt','w')
+
+	f.write("Total_num_questions "+str(total_num_questions) + "\n")
+	f.write("Format: In each segment, first number(k) is the postion of answer followed by median and mean of scores and ")
+	
+	for i in range(1,len(scores)):
+		if len(scores[i])==0:
+			continue
+		f.write("For threads containing " + str(i) + " number of answers \n")
+		f.write("Total number of question of this type: "+ str(len(scores[i][0]))+"\n")
+		for j in range(len(scores[i])):
+			# For questions containing even number of answers numpy.median will take the average of the two in the middle
+			f.write(str(j+1)+"\t"+str(numpy.median(scores[i][j]))+"\t\t"+str(numpy.mean(scores[i][j])) + "\n")
+
+			
+		
+	f.close()
+
+
+
+def compare_best_answer_vs_best_reputation_user_answer(qa_score):
+	'''
+	Input(qa_score): Dicationary with keys as questions and values are [[score],[userId],[reputation]]
+	Output: How many best answers are answered by the highest reputation person on the thread
+	'''
+	questions = qa_score.keys()
+	total_num_questions = len(questions)
+
+	output1 = 0
+	output2 = 0
+	output3 = 0
+	unanswered = 0
+	one_answer = 0
+
+	leftout_highest_rep_ans_index = []
+	for q in questions:
+		if len(qa_score[q][0]) > 1: # To handle the case when the there is no answer
+			temp = qa_score[q][0]	# Temporary variable storing the list of answers score
+			index_highest_rep = qa_score[q][2].index(max(qa_score[q][2]))
+			k = 0
+			if temp.index(max(temp)) == index_highest_rep:
+				output1 += 1
+				continue
+			
+			temp[temp.index(max(temp))] = -1	# Made the highest score answer lowest score answer so the second highest score answer become the highest answer 
+			
+			if temp.index(max(temp)) == index_highest_rep:	#'''Second highest score answer vs reputed answer'''
+				output2 += 1
+				continue
+			
+			temp[temp.index(max(temp))] = -1	# Made the highest score answer lowest score answer so the second highest score answer become the highest answer 
+			
+			if temp.index(max(temp)) == index_highest_rep:	#'''Second highest score answer vs reputed answer'''
+				output3 += 1
+				continue
+			
+			# temp[temp.index(max(temp))] = -1	# Made the highest score answer lowest score answer so the second highest score answer become the highest answer  
+			
+			else:
+				leftout_highest_rep_ans_index.append([temp.index(max(temp)),index_highest_rep])
+		
+		elif  len(qa_score[q][0]) == 0:
+			unanswered += 1
+		else :
+			one_answer += 1
+
+	print("Number of question in which the best answer answered by best reputation answerer on the thread ",output1,", second best answer ",output2,", third best answer ",output3,"and left out",leftout_highest_rep_ans_index,"out of total",len(questions),"questions")
+	print("Unanswered",unanswered)
+	print("one_answer",one_answer)
+	'''for HPC'''
+
+	f=open('best_answer_vs_best_reputation_user_answer.txt','w')
+		
+	f.write("Number of question in which the best answer answered by best reputation answerer on the thread "+str(output1)+", second best answer " + str(output2) +", third best answer " + str(output3) +" out of total "+str(len(questions))+" questions")
+		
+	f.close()
+
+
+
+def network1(root):
+	questions = []
+	G = nx.Graph()
+	others = 0
+	for child in root:
+		Id = int(child.attrib['Id'])
+		G.add_node(Id)
+
+		if child.attrib['PostTypeId'] == "2":
+			G.add_edge(Id,int( child.attrib['ParentId']) )
+			
+		elif child.attrib['PostTypeId'] == "1":
+			questions.append(Id)
+
+		else:
+			others += 1
+	#print('others',others)
+	num_of_answers_distribution(G,questions)
+
+
+
+def network1_compli(root):
+	'''
+
+	NOTE: I converted all the integers string into the integer format
+
+	'''
+	global current_dir
+
+	questions = {}
+	G = nx.Graph()
+	
+	for child in root:
+		
+		Id = int(child.attrib['Id'])
+
+		if child.attrib['PostTypeId'] == "2":	# It means it is an answer to some question
+			
+			parentId = int(child.attrib['ParentId'])
+
+			if G.has_node(parentId):	# For checking answers which does not belong to PostTypeId 2
+				G.add_node(Id)
+				G.add_edge(Id,parentId )	# Form an edge with its question
+			
+			#if questions.has_key(parentId): # Because in question I have ignored other types, so there might be conflict
+				#print(questions[parentId])
+				questions[parentId][0].append( int(child.attrib['Score']) )
+
+
+
+				'''For considering the case when the user is removed and putting -5 there	'''
+				
+				if child.attrib.has_key('OwnerUserId'):
+					questions[parentId][1].append( int(child.attrib['OwnerUserId']) )
+				else:
+					questions[parentId][1].append( -5 )
+
+				date_time = child.attrib['CreationDate']
+				date_time = date_time.replace('T','-').replace(':','-').replace('.','-')
+				date_time = date_time.split('-')
+				for i in range(len(date_time)):
+					date_time[i] = int(date_time[i])
+
+				t = datetime.datetime(date_time[0],date_time[1],date_time[2],date_time[3],date_time[4],date_time[5],date_time[6])
+
+				t = time.mktime(t.timetuple())
+
+				questions[parentId][2].append( t )
+
+				# '''Check whether it is an accepted answer of the question or not'''
+				# if questions[parentId][3][0] == Id:
+				# 	questions[parentId][3].append(t)
+
+
+
+		elif child.attrib['PostTypeId'] == "1":
+			G.add_node(Id)
+			questions[Id] = [[],[],[],[-1]]	# list are for scores, userId of the answerer, time of the post, accepted answer user Id(-1 means no accepted answer)
+			
+			if child.attrib.has_key('AcceptedAnswerId'):
+				questions[Id][3][0] = int(child.attrib['AcceptedAnswerId'])
+
+			date_time = child.attrib['CreationDate']
+			date_time = date_time.replace('T','-').replace(':','-').replace('.','-')
+			date_time = date_time.split('-')
+			for i in range(len(date_time)):
+				date_time[i] = int(date_time[i])
+
+			t = datetime.datetime(date_time[0],date_time[1],date_time[2],date_time[3],date_time[4],date_time[5],date_time[6])
+
+			t = time.mktime(t.timetuple())
+
+			questions[Id][2].append( t )
+			#print(questions[Id])
+		#print(Id)	# For HPC
+	
+
+	# Format question then reputation of answers in increasing order of time rank
+	
+	#add_reputation_to_dict(questions,users_reputation())
+	
+	add_accepted_answer_time(questions)
+
+	# Ques = (questions.keys())
+
+	# ''' Write the question with their answers score(sorted w.r.t. time) in a file'''
+	# f=open('questions_with_its_answers_score('+current_dir+').txt','w')
+
+	# for q in Ques:
+		
+	# 	f.write(str(q)+"\t")
+	# 	ans = questions[q][0]
+
+	# 	for a in ans:
+	# 		f.write(str(a)+"\t")
+
+	# 	f.write("\n")
+
+	# f.close()
+	
+	# nx.write_edgelist(G,'net1_graph('+current_dir+').txt')
+	
+	print("Graph formed")
+
+	#num_of_answers_distribution(G,Ques)
+	best_answer(questions)
+
+
+	#compare_best_answer_vs_best_reputation_user_answer(questions)
+	#nx.draw(G)
+	#plt.show()
+
+
+def add_accepted_answer_time(questions):
+
+	global current_dir
+
+	tree = ET.parse(current_dir+"/Votes.xml")
+	root = tree.getroot()	
+
+	accepted = {}
+
+	for child in root:
+		if child.attrib['VoteTypeId'] == "1":
+			date_time = child.attrib['CreationDate']
+			date_time = date_time.replace('T','-').replace(':','-').replace('.','-')
+			date_time = date_time.split('-')
+			for i in range(len(date_time)):
+				date_time[i] = int(date_time[i])
+
+			t = datetime.datetime(date_time[0],date_time[1],date_time[2],date_time[3],date_time[4],date_time[5],date_time[6])
+
+			t = time.mktime(t.timetuple())
+
+			accepted[int(child.attrib['PostId'])] = t
+
+	ques = questions.keys()
+	for q in ques:
+		if questions[q][3][0] != -1:
+			diff = t-questions[q][2][0]
+			if diff<0:
+				questions[q][3].append(0) 
+			else:
+				questions[q][3].append(diff)
+
+
+
+
+def num_of_answers_distribution(G,questions_id):
+	'''
+	Input: Network of type 1
+	Output: Number of answers distribution i.e. how many question get how many answers
+	'''
+	global current_dir
+
+	distri = [0 for i in range(1000)]	# List in which ith position determine number of questions having (i+1) answers
+
+	for q in questions_id:
+		distri[G.degree(q)] += 1
+
+	# truncate empty entries at the end
+
+	i = len(distri)-1
+	while(distri[i]==0):
+		distri.pop()
+		i-=1
+
+	# plt.plot(distri,'bo')
+	# plt.xlabel('Number of answers')
+	# plt.ylabel('num_questions')
+	# plt.show()
+	''' Write number of answers distribution in a file'''
+	#f=open('number_of_answers_distribution(meta_stackexchange).txt','w')
+	f=open('number_of_answers_distribution('+current_dir+').txt','w')
+	
+	f.write("Total questions "+str(len(questions_id)) + "\n" )
+	
+	for i in range(len(distri)):
+		if distri[i] == 0:
+			continue
+		f.write(str(i+1)+"\t"+str(distri[i])+"\n")
+		
+	f.close()
+
+	return distri
+
+
+
+def users_reputation():
+	'''
+	Parse the Users.xml file and return the dictionary(users_rep) with keys as userID and value as reputation
+	'''
+	global current_dir
+	tree = ET.parse(current_dir+"/Users.xml")
+	root = tree.getroot()
+	
+	users_rep = {}
+	dis_rep = {}
+	for child in root:
+		rep = int(child.attrib['Reputation'])
+		users_rep[int(child.attrib['Id'])] = rep
+		if dis_rep.has_key(rep):
+			dis_rep[rep] += 1
+		else:
+			dis_rep[rep] = 1
+
+
+	# plt.plot(dis_rep.keys(),dis_rep.values())
+	# plt.show()
+
+	''' Write number of reputation distribution in a file'''
+	
+	f=open('reputation_distribution('+current_dir+').txt','w')
+	
+	reps = sorted(dis_rep.keys())
+
+	for rep in reps:
+		
+		f.write(str(rep)+"\t"+str(dis_rep[rep])+"\n")
+		
+	f.close()
+
+	return users_rep
+
+
+
+def add_reputation_to_dict(qa_score,users_rep):
+	'''
+	Input: Two dictionaries 
+	1)qa_score: contain a questionID as keys and with question's answers[[score],[userID]] (with one-one correspondence) as values
+	2)users_rep: keys as userID and values as reputation
+	This function modify the dictionary(qa_score) to add one more list to the values which contain the reputation of the users
+	'''
+	questions = qa_score.keys()
+
+	for q in questions:
+		qa_score[q].append([])	# Extra list for storing the reputation of the answerers
+		answerers_ID = qa_score[q][1]	# List on answerers userID
+
+		for aid in answerers_ID:	# Appending reputation
+			if aid == -5:
+				qa_score[q][2].append(0)
+			else:
+				qa_score[q][2].append(users_rep[aid])
+
+
+
+def network2(root):
+
+	G_temp = nx.Graph()
+	answerer_nodes = []
+	question_nodes = []
+	
+	for child in root:
+
+		Id = child.attrib['Id']
+		
+		G_temp.add_node(Id)
+
+		if child.attrib['PostTypeId'] == "2":
+			answerer_nodes.append(Id)
+			G_temp.add_edge(Id,child.attrib['ParentId'])
+		
+		elif child.attrib['PostTypeId'] == "1":
+			
+			question_nodes.append(Id)
+
+	G = nx.Graph()
+	G.add_nodes_from(answerer_nodes)
+	for node in question_nodes:
+		neighbors = G_temp.neighbors(node)
+		length = len(neighbors)
+		for i in range(length):
+			for j in range(i+1,length):
+				if G.has_edge(neighbors[i],neighbors[j]):
+					G[neighbors[i]][neighbors[j]][weight] += 1
+				else:
+					G.add_edge(neighbors[i],neighbors[j],weight=1)
+	#nx.draw(G)
+	#plt.show()
+
+	nx.write_edgelist(G,'net2_graph.txt')
+	print("Graph formed")
+
+	degree_distribution(G)
+	triangles_count(G)
+	#clustering(G)
+
+
+
+def network3(root):
+
+	G_temp = nx.Graph()
+	answerer_nodes = []
+	question_nodes = []
+	
+	for child in root:
+
+		Id = child.attrib['Id']
+		
+		G_temp.add_node(Id)
+
+		if child.attrib['PostTypeId'] == "2":
+			answerer_nodes.append(Id)
+			G_temp.add_edge(Id,child.attrib['ParentId'])
+		
+		elif child.attrib['PostTypeId'] == "1":
+			question_nodes.append(Id)
+
+	G = nx.Graph()
+	G.add_nodes_from(question_nodes)
+	for node in answerer_nodes:
+		neighbors = G_temp.neighbors(node)
+		length = len(neighbors)
+		for i in range(length):
+			for j in range(i+1,length):
+				if G.has_edge(neighbors[i],neighbors[j]):
+					G[neighbors[i]][neighbors[j]][weight] += 1
+				else:
+					G.add_edge(neighbors[i],neighbors[j],weight=1)
+	#nx.draw(G)
+	#plt.show()
+	nx.write_edgelist(G,'net3_graph.txt')
+	degree_distribution(G)
+
+
+
+def degree_distribution(G):
+	''' Gives you the list whose index is degree and values are number of nodes of degree equal to the index '''
+	
+	temp = nx.degree(G).values()
+	degrees = list( set(temp) )
+	deg_distri = []
+
+	for deg in degrees:
+		deg_distri.append(sum( d == deg for d in temp))
+
+	#plt.plot(degrees,deg_distri,'bo')	# Expected ranking vs degree plot in blue
+	#plt.xlabel('Degree')
+	#plt.ylabel('Number of people')
+	print(degrees,deg_distri)
+	#plt.xscale('log')
+	#plt.yscale('log')
+	f=open('net2_degree_numb_of_people.txt','w')
+	for i in range(len(degrees)):
+		f.write(str(degrees[i])+"\t"+str(deg_distri[i])+"\n")
+	
+	f.close()	
+	#plt.show()
+
+
+
+def clustering(G):
+	''' Gives you the list whose index is degree and values are number of nodes of degree equal to the index '''
+	
+	temp = nx.clustering(G).values()
+	coeff = list( set(temp) )
+	coeff_distri = []
+
+	for coe in coeff:
+		coeff_distri.append(sum( c == coe for c in temp))
+
+	#plt.plot(coeff,coeff_distri,'bo')	# Expected ranking vs degree plot in blue
+	#plt.xlabel('clustering_coeff')
+	#plt.ylabel('Number_of_people')
+	#print(((nx.clustering(G).values())),coeff_distri)
+	#plt.xscale('log')
+	#plt.yscale('log')
+	f=open('net2_clustering_numb_of_people.txt','w')
+	for i in range(len(coeff)):
+		f.write(str(coeff[i])+"\t"+str(coeff_distri[i])+"\n")
+	
+	f.close()	
+	#plt.show()
+
+
+
+def triangles_count(G):
+	''' Gives you the list whose index is degree and values are number of nodes of degree equal to the index '''
+	
+	temp = nx.triangles(G).values()
+	tri_count = sorted(list( set(temp) ))
+	tri_distri = []
+
+	for tri in tri_count:
+		tri_distri.append(sum( t == tri for t in temp))
+
+	#plt.plot(tri_count,tri_distri,'bo')	# Expected ranking vs degree plot in blue
+	#plt.xlabel('triangles_count')
+	#plt.ylabel('Number_of_people')
+	#print(((nx.clustering(G).values())),coeff_distri)
+	#plt.xscale('log')
+	#plt.yscale('log')
+	f=open('net2_triangle_numb_of_people.txt','w')
+	for i in range(len(tri_count)):
+		f.write(str(tri_count[i])+"\t"+str(tri_distri[i])+"\n")
+	
+	f.close()	
+	#plt.show()
+
+
+
+main()
